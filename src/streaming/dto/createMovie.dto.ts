@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsNotEmpty, IsNumber, IsString, IsUrl, MaxLength } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsUrl, MaxLength } from "class-validator";
 
+// Data Tranfer Object - Define shape of incoming data
 export class CreateMovieDTO {
     @ApiProperty({
         example: 'Inception',
@@ -17,6 +18,13 @@ export class CreateMovieDTO {
     })
     @IsString()
     description: string;
+
+    @ApiProperty({
+        example: 'Sci-fi',
+        description: 'Movie genre',
+    })
+    @IsString()
+    genre: string;
 
     @ApiProperty({
         example: 'https://example.com/inception.jpg',

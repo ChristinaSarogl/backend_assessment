@@ -24,8 +24,9 @@ export class StreamingService {
         private moviesRepository: Repository<Movie>,
     ) { }
 
-    async findAll(page: number = 1, limit: number = 20): Promise<findAllRes> {
+    async findAll(page: number = 1, limit: number = 20, genre: string = ''): Promise<findAllRes> {
         const [movies, total] = await this.moviesRepository.findAndCount({
+            where: genre ? { genre: genre } : {},
             skip: (page - 1) * limit,
             take: limit,
             order: {

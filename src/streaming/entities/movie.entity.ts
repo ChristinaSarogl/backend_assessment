@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
 
+// Structure of movies table
 @Entity('movies')
 export class Movie {
   @PrimaryGeneratedColumn()
@@ -10,6 +11,9 @@ export class Movie {
 
   @Column({ type: 'text' })
   description: string | null;
+
+  @Column({ type: 'varchar', length: 255 })
+  genre: string;
 
   @Column({ type: 'text' })
   thumbnail_url: string | null;
