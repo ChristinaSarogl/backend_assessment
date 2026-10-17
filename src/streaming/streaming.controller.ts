@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException, Query, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException, Query, DefaultValuePipe, Patch } from '@nestjs/common';
 import { CreateMovieDTO } from './dto/createMovie.dto.js';
 import { UpdateMovieDTO } from './dto/updateMovie.dto.js';
 import { StreamingService } from './streaming.service.js';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('streaming')
 @Controller('api/streaming')
@@ -18,14 +18,14 @@ export class StreamingController {
         name: 'page',
         required: false,
         type: String,
-        example: 1,
+        example: '1',
         description: 'Page number (starting from 1)',
     })
     @ApiQuery({
         name: 'limit',
         required: false,
         type: String,
-        example: 20,
+        example: '20',
         description: 'Number of movies per page',
     })
     async findAll(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -42,7 +42,7 @@ export class StreamingController {
         name: 'id',
         required: false,
         type: String,
-        example: 1,
+        example: '1',
         description: 'Id number (starting from 1)',
     })
     async findOne(@Param('id', ParseIntPipe) id: number) {
@@ -56,20 +56,47 @@ export class StreamingController {
     }
 
     @Post()
-    createMovie(@Body() createMovieDto: CreateMovieDTO) {
-        return createMovieDto;
+    @ApiOperation({
+        summary: 'Create a movie',
+        description: 'Creates a new movie in the database.',
+    })
+    @ApiBody({ type: CreateMovieDTO })
+    async create(@Body() createMovieDto: CreateMovieDTO) {
+        return await this.streamingService.create(createMovieDto);
     }
 
-    @Put(':id')
-    editMovie(@Param('id', ParseIntPipe) id: number, @Body() updateMovieDto: UpdateMovieDTO) {
-        return {
-            id: id,
-            updateMovieDto: updateMovieDto
-        };
+    @Patch(':id')
+    @ApiOperation({
+        summary: 'Update a movie',
+        description: 'Partially updates an existing movie.',
+    })
+    @ApiParam({
+        name: 'id',
+        required: false,
+        type: String,
+        example: '1',
+        description: 'Id number (starting from 1)',
+    })
+    @ApiBody({
+        type: UpdateMovieDTO,
+    })
+    async update(@Param('id', ParseIntPipe) id: number, @Body() updateMovieDto: UpdateMovieDTO) {
+        return await this.streamingService.update(id, updateMovieDto);
     }
 
-    @Delete('id')
-    deleteMovie(@Param('id', ParseIntPipe) id: number) {
-        return id;
+    @Delete(':id')
+    @ApiOperation({
+        summary: 'Delete a movie',
+        description: 'Permanently deletes a movie by its ID.',
+    })
+    @ApiParam({
+        name: 'id',
+        required: false,
+        type: String,
+        example: '1',
+        description: 'Id number (starting from 1)',
+    })
+    async delete(@Param('id', ParseIntPipe) id: number) {
+        return await this.streamingService.remove(id);
     }
 }
