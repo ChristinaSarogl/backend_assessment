@@ -1,43 +1,75 @@
-import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException } from '@nestjs/common';
-import { CreateVideoDTO } from './dto/createVideo.dto.js';
-import { UpdateVideoDTO } from './dto/updateVideo.dto.js';
+import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException, Query, DefaultValuePipe } from '@nestjs/common';
+import { CreateMovieDTO } from './dto/createMovie.dto.js';
+import { UpdateMovieDTO } from './dto/updateMovie.dto.js';
 import { StreamingService } from './streaming.service.js';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('streaming')
 @Controller('api/streaming')
 export class StreamingController {
-    constructor(private readonly streamingService: StreamingService) {}
+    constructor(private readonly streamingService: StreamingService) { }
 
     @Get()
-    findAll() {
-        return this.streamingService.findAll();
+    @ApiOperation({
+        summary: 'Get paginated movies',
+        description: 'Returns movies using page-based pagination.',
+    })
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        type: String,
+        example: 1,
+        description: 'Page number (starting from 1)',
+    })
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        type: String,
+        example: 20,
+        description: 'Number of movies per page',
+    })
+    async findAll(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number): Promise<any> {
+        return await this.streamingService.findAll(page, limit);
     }
 
     @Get(':id')
-    async getVideo(@Param('id', ParseIntPipe) id: number) {
-        const res =  await this.streamingService.findOne(id);
+    @ApiOperation({
+        summary: 'Get a single movie',
+        description: 'Returns a movie based on its ID.',
+    })
+    @ApiParam({
+        name: 'id',
+        required: false,
+        type: String,
+        example: 1,
+        description: 'Id number (starting from 1)',
+    })
+    async findOne(@Param('id', ParseIntPipe) id: number) {
+        const res = await this.streamingService.findOne(id);
 
         if (!res) {
-            throw new NotFoundException('Entry not found!');
+            throw new NotFoundException(`Entry with ID ${id} not found!`);
         }
 
         return res;
     }
 
     @Post()
-    createVideo(@Body() createVideoDto: CreateVideoDTO) {
-        return createVideoDto;
+    createMovie(@Body() createMovieDto: CreateMovieDTO) {
+        return createMovieDto;
     }
 
     @Put(':id')
-    editVideo(@Param('id', ParseIntPipe) id: number, @Body() updateVideoDto : UpdateVideoDTO) {
+    editMovie(@Param('id', ParseIntPipe) id: number, @Body() updateMovieDto: UpdateMovieDTO) {
         return {
             id: id,
-            updateVideoDto: updateVideoDto
+            updateMovieDto: updateMovieDto
         };
     }
 
     @Delete('id')
-    deleteVideo(@Param('id', ParseIntPipe) id: number) {
+    deleteMovie(@Param('id', ParseIntPipe) id: number) {
         return id;
     }
 }

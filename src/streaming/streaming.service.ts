@@ -3,6 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity.js';
 import { Repository } from 'typeorm';
 
+interface findAllRes {
+    data: Movie[],
+    meta: {
+        total: number,
+        page: number,
+        limit: number,
+        totalPages: number,
+        hasNextPage: boolean,
+        hasPreviousPage: boolean
+    }
+}
+
 @Injectable()
 export class StreamingService {
     constructor(
@@ -10,11 +22,29 @@ export class StreamingService {
         private moviesRepository: Repository<Movie>,
     ) { }
 
-    findAll(): Promise<Movie[]> {
-        return this.moviesRepository.find();
+    async findAll(page: number = 1, limit: number = 20): Promise<findAllRes> {
+        const [movies, total] = await this.moviesRepository.findAndCount({
+            skip: (page - 1) * limit,
+            take: limit,
+            order: {
+                id: 'ASC'
+            }
+        });
+
+        return {
+            data: movies,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasNextPage: page * limit < total,
+                hasPreviousPage: page > 1,
+            },
+        };
     }
 
-    findOne(id: number): Promise<Movie | null> {
+    async findOne(id: number): Promise<Movie | null> {
         return this.moviesRepository.findOneBy({ id });
     }
 
