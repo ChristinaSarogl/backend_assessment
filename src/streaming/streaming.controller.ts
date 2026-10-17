@@ -1,17 +1,26 @@
-import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException } from '@nestjs/common';
 import { CreateVideoDTO } from './dto/createVideo.dto.js';
 import { UpdateVideoDTO } from './dto/updateVideo.dto.js';
+import { StreamingService } from './streaming.service.js';
 
 @Controller('api/streaming')
 export class StreamingController {
+    constructor(private readonly streamingService: StreamingService) {}
+
     @Get()
-    getVideoList() {
-        return 'paginated list';
+    findAll() {
+        return this.streamingService.findAll();
     }
 
     @Get(':id')
-    getVideo(@Param('id', ParseIntPipe) id: number){
-        return id;
+    async getVideo(@Param('id', ParseIntPipe) id: number) {
+        const res =  await this.streamingService.findOne(id);
+
+        if (!res) {
+            throw new NotFoundException('Entry not found!');
+        }
+
+        return res;
     }
 
     @Post()
