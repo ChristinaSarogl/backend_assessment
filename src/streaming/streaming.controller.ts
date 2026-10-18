@@ -12,6 +12,54 @@ import { AuthGuard } from '../guards/auth.guard.js';
 export class StreamingController {
     constructor(private readonly streamingService: StreamingService) { }
 
+    @Get()
+    @ApiOperation({
+        summary: 'Get paginated movies',
+        description: 'Returns movies using page-based pagination.',
+    })
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        type: String,
+        example: '1',
+        description: 'Page number (starting from 1)',
+    })
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        type: String,
+        example: '20',
+        description: 'Number of movies per page',
+    })
+    @ApiQuery({
+        name: 'genre',
+        required: false,
+        type: String,
+        example: 'Drama',
+        description: 'Movie genre',
+    })
+    async findAll(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+        @Query('genre', new DefaultValuePipe('')) genre: string): Promise<any> {
+        
+        // Don't allow 0 or negative pages
+        if (page < 1) {
+            throw new BadRequestException(
+                'Page must be a positive integer greater than or equal to 1.'
+            );
+        }
+
+
+        //Limit the limit between 1 and 100 entries on each page
+        if (limit < 1 || limit > 100) {
+            throw new BadRequestException(
+                'Limit must be between 1 and 100.'
+            );
+        }
+
+        return await this.streamingService.findAll(page, limit, genre);
+    }
+
     @Get(':id')
     @ApiOperation({
         summary: 'Get a single movie',
