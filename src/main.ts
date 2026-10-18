@@ -20,12 +20,30 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Authentication')
     .addTag('Streaming')
-    .addBearerAuth()
+    .addBearerAuth({type: 'http', scheme: 'bearer', bearerFormat: 'JWT'}, 'access-token')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      //Upon login save token
+      responseInterceptor: (res: any) => {
+        if (res.url.endsWith('auth/login') && res.ok){
+          try{
+            const token = JSON.parse(res.text).data;
+
+            if (token) {
+              (window as any).ui.preauthorizeApiKey('access-token', token);
+            }
+          } catch { }
+        }
+        
+        return res;
+      }
+    }
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
