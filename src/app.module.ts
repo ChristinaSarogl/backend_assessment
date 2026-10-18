@@ -5,6 +5,7 @@ import { AppService } from './app.service.js';
 import { StreamingModule } from './streaming/streaming.module.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -16,6 +17,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
+
+      // Get values from env file
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.getOrThrow<string>('DB_HOST'),
@@ -31,9 +34,10 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     
     StreamingModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 
-export class AppModule {}
+export class AppModule { }

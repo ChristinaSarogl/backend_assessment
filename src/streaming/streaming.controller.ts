@@ -1,11 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException, Query, DefaultValuePipe, Patch, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body, NotFoundException, Query, DefaultValuePipe, Patch, BadRequestException, UseGuards } from '@nestjs/common';
 import { CreateMovieDTO } from './dto/createMovie.dto.js';
 import { UpdateMovieDTO } from './dto/updateMovie.dto.js';
 import { StreamingService } from './streaming.service.js';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../guards/auth.guard.js';
 
-@ApiTags('streaming')
+@ApiTags('Streaming')
 @Controller('api/streaming')
+@UseGuards(AuthGuard)
 export class StreamingController {
     constructor(private readonly streamingService: StreamingService) { }
 

@@ -21,10 +21,11 @@ interface findAllRes {
 export class StreamingService {
     constructor(
         @InjectRepository(Movie)
-        private moviesRepository: Repository<Movie>,
+        private readonly moviesRepository: Repository<Movie>,
     ) { }
 
     async findAll(page: number = 1, limit: number = 20, genre: string = ''): Promise<findAllRes> {
+        // Get movies and count total
         const [movies, total] = await this.moviesRepository.findAndCount({
             where: genre ? { genre: genre } : {},
             skip: (page - 1) * limit,

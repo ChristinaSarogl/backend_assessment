@@ -18,7 +18,9 @@ async function bootstrap() {
       'Backend assessment API using NestJS, PostgreSQL and TypeORM.',
     )
     .setVersion('1.0')
-    .addTag('streaming')
+    .addTag('Authentication')
+    .addTag('Streaming')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
