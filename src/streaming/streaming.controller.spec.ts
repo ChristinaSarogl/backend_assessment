@@ -139,4 +139,35 @@ describe('StreamingController', () => {
       await expect(controller.delete(99)).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('streamMovie', () => {
+    it('returns the video url of the movie', async () => {
+      const movie = {
+        id: 1,
+        title: 'Heat',
+        video_url: 'https://cdn.example.com/heat.mp4',
+      };
+      service.findOne.mockResolvedValue(movie as never);
+ 
+      const result = await controller.streamMovie(1);
+ 
+      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(result).toBe('https://cdn.example.com/heat.mp4');
+    });
+ 
+    it('throws NotFoundException when the movie does not exist', async () => {
+      service.findOne.mockResolvedValue(null as never);
+ 
+      const promise = controller.streamMovie(99);
+ 
+      await expect(promise).rejects.toThrow(NotFoundException);
+      await expect(promise).rejects.toThrow('Entry with ID 99 not found!');
+    });
+ 
+    it('propagates service errors', async () => {
+      service.findOne.mockRejectedValue(new Error('db error') as never);
+ 
+      await expect(controller.streamMovie(1)).rejects.toThrow('db error');
+    });
+  });
 });

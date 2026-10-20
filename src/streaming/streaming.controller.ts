@@ -41,7 +41,7 @@ export class StreamingController {
     async findAll(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
         @Query('genre', new DefaultValuePipe('')) genre: string): Promise<any> {
-        
+
         // Don't allow 0 or negative pages
         if (page < 1) {
             throw new BadRequestException('Page must be a positive integer greater than or equal to 1.');
@@ -76,6 +76,28 @@ export class StreamingController {
         }
 
         return res;
+    }
+
+    @Get(':id/play')
+    @ApiOperation({
+        summary: 'Get stream proxy route',
+        description: 'Returns the movie url based on its ID.',
+    })
+    @ApiParam({
+        name: 'id',
+        required: false,
+        type: String,
+        example: '1',
+        description: 'Id number (starting from 1)',
+    })
+    async streamMovie(@Param('id', ParseIntPipe) id: number) {
+        const res = await this.streamingService.findOne(id);
+
+        if (!res) {
+            throw new NotFoundException(`Entry with ID ${id} not found!`);
+        }
+
+        return res.video_url;
     }
 
     @Post()
