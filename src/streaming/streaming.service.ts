@@ -70,7 +70,6 @@ export class StreamingService {
     }
 
     async remove(id: number): Promise<void> {
-        console.log(id);
         const res = await this.moviesRepository.delete(id);
 
         if (res.affected === 0) {

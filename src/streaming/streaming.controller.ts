@@ -44,17 +44,13 @@ export class StreamingController {
         
         // Don't allow 0 or negative pages
         if (page < 1) {
-            throw new BadRequestException(
-                'Page must be a positive integer greater than or equal to 1.'
-            );
+            throw new BadRequestException('Page must be a positive integer greater than or equal to 1.');
         }
 
 
         //Limit the limit between 1 and 100 entries on each page
         if (limit < 1 || limit > 100) {
-            throw new BadRequestException(
-                'Limit must be between 1 and 100.'
-            );
+            throw new BadRequestException('Limit must be between 1 and 100.');
         }
 
         return await this.streamingService.findAll(page, limit, genre);

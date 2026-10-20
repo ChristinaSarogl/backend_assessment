@@ -1,5 +1,4 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -34,7 +33,7 @@ export class AuthGuard implements CanActivate {
 
     } catch (err) {
       console.error(err);
-      throw new UnauthorizedException('An eeror occured during authorization verification.');
+      throw new UnauthorizedException('An error occured during authorization verification.');
     }
   }
 }

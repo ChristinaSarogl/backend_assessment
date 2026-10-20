@@ -12,7 +12,7 @@ export class AuthController {
     @Post('login')
     @ApiOperation({
         summary: 'Login user',
-        description: 'Login user based on their credential.',
+        description: 'Login user based on their credential. ( user@email.com / password )',
     })
     @ApiBody({ type: LoginUserDto })
     async login(@Body() loginUserDto: LoginUserDto) {
