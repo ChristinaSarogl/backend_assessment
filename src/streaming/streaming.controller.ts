@@ -4,14 +4,18 @@ import { UpdateMovieDTO } from './dto/updateMovie.dto.js';
 import { StreamingService } from './streaming.service.js';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../guards/auth.guard.js';
+import { RoleGuard } from '../guards/role.guard.js';
+import { Roles } from '../guards/role.decorator.js';
+import { UserRole } from '../auth/entities/user.entity.js';
 
 @ApiTags('Streaming')
 @ApiBearerAuth('access-token')
 @Controller('api/streaming')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RoleGuard)
 export class StreamingController {
     constructor(private readonly streamingService: StreamingService) { }
 
+    @Roles(UserRole.ADMIN, UserRole.USER)
     @Get()
     @ApiOperation({
         summary: 'Get paginated movies',
@@ -56,6 +60,7 @@ export class StreamingController {
         return await this.streamingService.findAll(page, limit, genre);
     }
 
+    @Roles(UserRole.ADMIN, UserRole.USER)
     @Get(':id')
     @ApiOperation({
         summary: 'Get a single movie',
@@ -78,6 +83,7 @@ export class StreamingController {
         return res;
     }
 
+    @Roles(UserRole.ADMIN, UserRole.USER)
     @Get(':id/play')
     @ApiOperation({
         summary: 'Get stream proxy route',
@@ -100,6 +106,7 @@ export class StreamingController {
         return res.video_url;
     }
 
+    @Roles(UserRole.ADMIN)
     @Post()
     @ApiOperation({
         summary: 'Create a movie',
@@ -110,6 +117,7 @@ export class StreamingController {
         return await this.streamingService.create(createMovieDto);
     }
 
+    @Roles(UserRole.ADMIN)
     @Patch(':id')
     @ApiOperation({
         summary: 'Update a movie',
@@ -129,6 +137,7 @@ export class StreamingController {
         return await this.streamingService.update(id, updateMovieDto);
     }
 
+    @Roles(UserRole.ADMIN)
     @Delete(':id')
     @ApiOperation({
         summary: 'Delete a movie',

@@ -5,6 +5,7 @@ import { AuthService } from './auth.service.js';
 import { LoginUserDto } from './dto/loginUser.dto.js';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { RegisterUserDto } from './dto/registerUser.dto.js';
+import { UserRole } from './entities/user.entity.js';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -66,7 +67,28 @@ describe('AuthController', () => {
       service.create.mockResolvedValue(created as never);
  
       await expect(controller.create(dto)).resolves.toBe(created);
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(service.create).toHaveBeenCalledWith(dto, UserRole.USER);
+    });
+ 
+    it('propagates ConflictException from the service', async () => {
+      service.create.mockRejectedValue(new ConflictException() as never);
+ 
+      await expect(controller.create(dto)).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('createAdmin', () => {
+    const dto = {
+      email: 'test@example.com',
+      password: 'Password123!',
+    } as unknown as RegisterUserDto;
+ 
+    it('passes the DTO to the service and returns the created user', async () => {
+      const created = { id: 2, email: dto.email };
+      service.create.mockResolvedValue(created as never);
+ 
+      await expect(controller.createAdmin(dto)).resolves.toBe(created);
+      expect(service.create).toHaveBeenCalledWith(dto, UserRole.ADMIN);
     });
  
     it('propagates ConflictException from the service', async () => {

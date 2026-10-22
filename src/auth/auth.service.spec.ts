@@ -3,7 +3,7 @@ import { AuthService } from './auth.service.js';
 import { JwtService } from '@nestjs/jwt';
 import { jest } from '@jest/globals';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from './entities/user.entity.js';
+import { User, UserRole } from './entities/user.entity.js';
 import { RegisterUserDto } from './dto/registerUser.dto.js';
 import * as bcrypt from 'bcrypt';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
@@ -51,17 +51,22 @@ describe('AuthService', () => {
       password: 'Password123!'
     } as unknown as RegisterUserDto;
 
-    it('hashes the password, saves the user and returns only the id and email', async () => {
+    // Every role the entity defines (assumes UserRole is a string enum)
+    const roles = Object.values(UserRole) as UserRole[];
+    const role = roles[0];
+
+    it('hashes the password, saves the user with the given role and returns only the id and email', async () => {
       repository.findOneBy.mockResolvedValue(null as never);
 
       repository.create.mockImplementation((data: unknown) => data);
       repository.save.mockResolvedValue({
         id: 1,
         email: dto.email,
-        password: 'stored-hash'
+        password: 'stored-hash',
+        user_role: role
       } as never);
 
-      const res = await service.create(dto);
+      const res = await service.create(dto, role);
 
       expect(repository.findOneBy).toHaveBeenCalledWith({ email: dto.email });
 
@@ -69,22 +74,37 @@ describe('AuthService', () => {
       const createArg = repository.create.mock.calls[0][0] as {
         email: string;
         password: string;
+        user_role: UserRole;
       };
 
       expect(createArg.email).toBe(dto.email);
       expect(createArg.password).not.toBe(dto.password);
+      expect(createArg.user_role).toBe(role);
       await expect(bcrypt.compare(dto.password, createArg.password)).resolves.toBe(true);
 
       expect(repository.save).toHaveBeenCalledWith(createArg);
 
       expect(res).toEqual({ id: 1, email: dto.email });
       expect(res).not.toHaveProperty('password');
+      expect(res).not.toHaveProperty('role');
+    });
+
+    it.each(roles)('stores the %s role on the new user', async (userRoleSel) => {
+      repository.findOneBy.mockResolvedValue(null as never);
+      repository.create.mockImplementation((data: unknown) => data);
+      repository.save.mockResolvedValue({id: 1, email: dto.email} as never);
+
+      await service.create(dto, userRoleSel);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({email: dto.email, user_role: userRoleSel})
+      );
     });
 
     it('throws ConflictException when the email is already registered', async () => {
       repository.findOneBy.mockResolvedValue({ id: 1, email: dto.email } as never);
 
-      const promise = service.create(dto);
+      const promise = service.create(dto, role);
 
       await expect(promise).rejects.toThrow(ConflictException);
       await expect(promise).rejects.toThrow('Email has been already registered');
@@ -97,7 +117,7 @@ describe('AuthService', () => {
       repository.create.mockReturnValue({} as never);
       repository.save.mockRejectedValue(new Error('db error') as never);
 
-      await expect(service.create(dto)).rejects.toThrow('db error');
+      await expect(service.create(dto, role)).rejects.toThrow('db error');
     });
   });
 

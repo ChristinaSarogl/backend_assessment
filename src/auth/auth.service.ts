@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { User } from './entities/user.entity.js';
+import { User, UserRole } from './entities/user.entity.js';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterUserDto } from './dto/registerUser.dto.js';
@@ -20,7 +20,7 @@ export class AuthService {
         private readonly jwtService: JwtService
     ) { }
 
-    async create(registerUserDto: RegisterUserDto): Promise<CreatedUser> {
+    async create(registerUserDto: RegisterUserDto, userType: UserRole): Promise<CreatedUser> {
         const { email, password } = registerUserDto;
         // Find if the emai is already registered
         const res = await this.userRepository.findOneBy({ email });
@@ -34,7 +34,8 @@ export class AuthService {
 
         const user = this.userRepository.create({
             email,
-            password: hashedPass
+            password: hashedPass,
+            user_role: userType
         });
 
         const savedUser = await this.userRepository.save(user);
@@ -64,7 +65,8 @@ export class AuthService {
         //Create JWT payload
         const payload = {
             sub: user.id,
-            email: user.email
+            email: user.email,
+            role: user.user_role
         }
 
         const accessToken = await this.jwtService.signAsync(payload);
