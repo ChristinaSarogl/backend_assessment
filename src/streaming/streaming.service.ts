@@ -66,6 +66,7 @@ export class StreamingService {
         }
 
         Object.assign(movie, updateMovieDto);
+        movie.updated_at = new Date();
         return this.moviesRepository.save(movie);
     }
 
